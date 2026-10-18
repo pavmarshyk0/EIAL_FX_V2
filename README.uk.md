@@ -44,3 +44,14 @@ python research_gate.py --forecast results/ecb/report.json --quotes results/quot
 ## Ліцензія
 
 © 2026 Paweł Maruszczyk. [Коротка власницька ліцензія](LICENSE). Перегляд та оцінювання коду дозволені; інше використання потребує письмового дозволу. Не є фінансовою порадою.
+
+## AI Alpha Discovery v0.1 — пошук гіпотез ШІ
+
+Новий модуль `alpha_discovery/` створює та перевіряє числові гіпотези щодо EUR/USD та EUR/PLN, а не обіцяє прибуткові прогнози. За бажанням локальна LLM через Ollama (`--llm-model gemma3:4b`) пропонує **лише безпечні JSON-специфікації факторів**. Код моделі не виконується довільно. Хронологічний тест порівнює фактор із ціновим baseline і журналює всі негативні результати. Опційна нейромережа MLP є лише додатковим експериментом.
+
+```bash
+python -m alpha_discovery --demo --out results/alpha_demo
+python -m alpha_discovery --rates data/ecb_fx.csv --dev-end 2025-12-31 --out results/alpha_real
+```
+
+**Увага:** дані ECB не є виконуваними торговими котируваннями. Дані 2026 року в цьому проєкті вже аналізувалися, тому не є незалежним «сліпим» тестом. Підтвердженої alpha ще немає. Деталі — [`docs/AI_ALPHA_DISCOVERY.md`](docs/AI_ALPHA_DISCOVERY.md).

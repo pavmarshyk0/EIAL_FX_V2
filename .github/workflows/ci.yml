@@ -19,10 +19,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - run: python -m compileall -q eialfx.py quote_backtest.py dukascopy_to_quotes.py make_catalog.py research_gate.py
+      - run: python -m compileall -q eialfx.py quote_backtest.py dukascopy_to_quotes.py make_catalog.py research_gate.py alpha_discovery
       - run: python -m pytest -q
       - name: Run offline demonstrator (synthetic only)
         run: |
           python eialfx.py demo --out results/ci_demo
           python quote_backtest.py demo --out results/ci_quote_demo
           python research_gate.py --forecast results/ci_demo/report.json --quotes results/ci_quote_demo/report.json --out results/ci_gate.json
+
+      - name: AI alpha discovery offline smoke test (synthetic ONLY)
+        run: python -m alpha_discovery --demo --out results/ci_alpha_demo --max-candidates 6

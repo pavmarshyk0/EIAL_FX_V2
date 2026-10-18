@@ -76,7 +76,7 @@ LICENSE                    short proprietary source-available terms
 5. Model EUR/USD and EUR/PLN; derive USD/PLN algebraically to avoid inconsistent triangle forecasts.
 6. Only proceed to cost-aware paper testing after a positive forecast baseline comparison. A synthetic demonstration does **not** imply an edge.
 
-Read [research protocol](docs/RESEARCH_PROTOCOL.md), [viability assessment and synthetic negative results](docs/RESEARCH_ASSESSMENT.md), [data sourcing and strict point-in-time rules](docs/HISTORICAL_DATA_AND_BACKTEST.md), and [source catalog](VARIABLES_AND_SOURCES.csv).
+Read [research protocol](docs/RESEARCH_PROTOCOL.md), [data sourcing and strict point-in-time rules](docs/HISTORICAL_DATA_AND_BACKTEST.md), and [source catalog](VARIABLES_AND_SOURCES.csv).
 
 ## Core data caveats
 
@@ -95,3 +95,16 @@ This model is a separate research hypothesis from [Varrior Labs FX Analytics](ht
 ## License and scope
 
 © 2026 Paweł Maruszczyk. [Proprietary source-available license](LICENSE): viewing/evaluation allowed; reuse or distribution requires written permission. Research only; no investment advice or live-execution authorization.
+
+## AI Alpha Discovery (experimental v0.1)
+
+A local-LLM-assisted **hypothesis discovery & rejection engine** is available in [`alpha_discovery/`](alpha_discovery/). It proposes only allowlisted factor formulas, automatically compares each candidate to a matched price-only baseline with chronological folds, and stores all negative results. Optional `MLPRegressor` evaluation is exploratory. **There is no demonstrated alpha or executable P&L.**
+
+```bash
+python -m alpha_discovery --demo --out results/alpha_demo --max-candidates 24
+python -m alpha_discovery --rates data/ecb_fx.csv --dev-end 2025-12-31 --out results/alpha_real
+# Optional Ollama: --llm-model gemma3:4b
+# Optional explicitly unsealed: --explore-2026 --nonlinear
+```
+
+[Research methodology, commands, warnings (English)](docs/AI_ALPHA_DISCOVERY.md) · [Українською](README.uk.md) · [Polski](README.pl.md)

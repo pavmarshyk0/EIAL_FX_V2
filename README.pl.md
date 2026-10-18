@@ -44,3 +44,14 @@ Zobacz [protokół badawczy](docs/RESEARCH_PROTOCOL.md) i [pozyskiwanie danych](
 ## Licencja
 
 © 2026 Paweł Maruszczyk. [Krótka licencja własnościowa](LICENSE). Kod można przeglądać w celu oceny; dalsze wykorzystanie wymaga pisemnej zgody. Nie stanowi porady inwestycyjnej.
+
+## AI Alpha Discovery v0.1 — eksperymentalne poszukiwanie hipotez
+
+Moduł `alpha_discovery/` generuje i weryfikuje hipotezy dotyczące EUR/USD oraz EUR/PLN. Opcjonalny lokalny model Ollama (`--llm-model gemma3:4b`) proponuje wyłącznie dozwolone specyfikacje JSON — żaden wygenerowany kod Pythona nie jest uruchamiany. Każdy czynnik jest porównywany z modelem bazowym na chronologicznych danych, a wszystkie próby (także nieudane) są zapisywane. MLP to jedynie opcjonalny eksperyment.
+
+```bash
+python -m alpha_discovery --demo --out results/alpha_demo
+python -m alpha_discovery --rates data/ecb_fx.csv --dev-end 2025-12-31 --out results/alpha_real
+```
+
+**Ograniczenie:** kursy referencyjne ECB nie są cenami wykonania zleceń. Dane za 2026 r. były już analizowane i nie stanowią ślepej próby. Nie potwierdzono dotąd przewagi inwestycyjnej. Dokumentacja: [`docs/AI_ALPHA_DISCOVERY.md`](docs/AI_ALPHA_DISCOVERY.md).
