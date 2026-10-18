@@ -1,0 +1,56 @@
+import csv
+from pathlib import Path
+
+records = []
+def add(group, item, event, frequency, source, url, access, caveat):
+    records.append(dict(group=group, variable=item, event_feature=event, frequency=frequency,
+                        provider=source, url=url, accessibility=access, point_in_time_caveat=caveat))
+
+add('price','EUR/USD ECB reference','automatic rates: eurusd','business days','ECB EXR','https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A','FREE automated','Reference rate; released ~16 CET; NOT executable bid/ask')
+add('price','EUR/PLN ECB reference','automatic rates: eurpln','business days','ECB EXR','https://data-api.ecb.europa.eu/service/data/EXR/D.PLN.EUR.SP00.A','FREE automated','Reference rate; released ~16 CET; NOT executable bid/ask')
+add('price','USD/PLN triangular implied','derived usdpln=eurpln/eurusd','business days','Derived','https://data.ecb.europa.eu/help/api/data-examples','FREE automated','Exact reference-rate cross, ignores live executable bid/ask spreads')
+add('price','NBP published EUR/PLN PLN per EUR','not wired, CSV conversion required','business days','NBP table A','https://api.nbp.pl/api/exchangerates/rates/a/eur/last/20/?format=json','FREE API','Daily fixing NOT executable prices')
+add('price','NBP published bid/ask reference quotes','not wired, CSV conversion required','business days','NBP table C','https://api.nbp.pl/api/exchangerates/tables/c/last/10/?format=json','FREE API','Reference rate schedule; not live executable spot quote')
+add('market_micro','EUR/USD actual bid/ask tick price','rates tick quotes for separate intraday model','tick','Dukascopy','https://www.dukascopy-node.app/downloading-tick-data','historical publicly accessible','A broker/venue quote, not global FX market')
+add('market_micro','EUR/USD visible bid/ask quote size','eurusd__bid_size, eurusd__ask_size','tick aggregate->daily','Dukascopy / venue','https://www.dukascopy-node.app/downloading-tick-data','historical publicly accessible','Not consolidated global order book and not executed volume')
+add('market_micro','EUR/PLN visible bid/ask quote size','eurpln__bid_size, eurpln__ask_size','tick aggregate->daily','Broker/venue proprietary','https://www.dukascopy-node.app/downloading-tick-data','verify pair coverage','Check instrument availability; quote size not true signed FX flow')
+add('market_micro','Top-of-book quoted spread','eurusd__spread_bps, eurpln__spread_bps','tick aggregate->daily','Dukascopy / venue','https://www.dukascopy-node.app/downloading-tick-data','accessible per venue','Aggregate only observations BEFORE decision timestamp')
+add('market_micro','Depth across order-book levels','eurusd__depth, eurpln__depth','tick/order book','Cboe FX / EBS / LSEG','https://www.cboe.com/global/fx/','commercial / venue-specific','Usually subscription; coverage and depth format vary')
+add('market_micro','Executed signed trade flow','eurusd__signed_flow, eurpln__signed_flow','tick aggregate->daily','Venue execution feed / prime broker','https://www.cboe.com/global/fx/','generally commercial/proprietary','NOT equivalent to broker quote size; label must be actual executed signed flow')
+add('market_micro','Currency pair trading volume / turnover','eurusd__observed_volume','intraday/daily','CME FX futures or venue','https://www.cmegroup.com/markets/fx.html','mixed','FX future contract volume != OTC spot volume')
+add('market_micro','Dealer internalisation ratio','eurusd__internalization_share','monthly/quarterly','BIS research/venue or dealer','https://www.bis.org/publications/qr-202512/global-fx-markets-when-hedging-takes-centre-stage','mostly not public at daily resolution','Structural background, cannot infer per-day private dealer flow')
+add('macro','ECB deposit facility','policy_eur','daily policy effective date','FRED ECBDFR / ECB FM','https://fred.stlouisfed.org/series/ECBDFR','FREE FRED KEY automated','Two-business-day lag in downloader only conservative proxy, not exact release')
+add('macro','US Fed target range lower bound','policy_usd','daily policy effective date','FRED DFEDTARL','https://fred.stlouisfed.org/series/DFEDTARL','FREE FRED KEY automated','Not identical to ECBDFR money-market instrument')
+add('macro','NBP reference interest rate','policy_pln','changes','NBP policy announcements','https://nbp.pl/polityka-pieniezna/decyzje-rpp/','FREE manual/adapter','Attach timestamp of announcement or confirmed known effective date')
+add('macro','EUR money supply M3','m3_growth_eur','monthly','ECB BSI','https://data.ecb.europa.eu/data/datasets/BSI/BSI.M.U2.Y.V.M30.X.I.U2.2300.Z01.A','FREE API manual mapping','Publication after observation month; avoid attaching to month end')
+add('macro','USD money supply','m3_growth_usd (example only)','monthly','FRED M2SL','https://fred.stlouisfed.org/series/M2SL','FREE FRED KEY','M2 not M3; cannot compare raw levels directly')
+add('macro','Poland money supply M3','m3_growth_pln','monthly','NBP monetary statistics','https://nbp.pl/statystyka-i-sprawozdawczosc/statystyka-monetarna-i-finansowa/','FREE manual','Release timestamp and revisions required')
+add('macro','CPI surprises by currency','cpi_surprise_eur, cpi_surprise_usd, cpi_surprise_pln','monthly release','Statistics offices + consensus feed','https://ec.europa.eu/eurostat/web/main/data/database','consensus usually commercial','Must use released actual - PRE-RELEASE EXPECTATION, not level')
+add('macro','GDP growth surprise','gdp_surprise_eur','quarterly release','Eurostat + consensus feed','https://ec.europa.eu/eurostat/web/main/data/database','mixed','Avoid publication lag and revisions')
+add('macro','US short-term funding rate','funding_usd_sofr','business days','FRED SOFR','https://fred.stlouisfed.org/series/SOFR','FREE FRED KEY/manual','Apply release timestamp and point-in-time vintages')
+add('macro','EUR short term €STR','funding_eur_estr','business days','ECB','https://data.ecb.europa.eu/data/datasets/EST','FREE API manual','Use publication lag; benchmark differs from SOFR')
+add('macro','Cross currency basis USD/EUR','eurusd__xccy_basis_bps','daily','LSEG/Bloomberg/swap broker','https://www.bis.org/','usually commercial','Funding/frictions proxy; tenor and quote conventions must match')
+add('macro','FX forward points / swap points','eurusd__forward_points, eurpln__forward_points','daily','LSEG/Bloomberg/swaps venue','https://www.bis.org/','usually commercial','Must select tenor and use executable consistent bid/ask')
+add('macro','Central bank reserves','reserve_change_eur','monthly','ECB NBP IMF IFS','https://data.imf.org/','mixed','Level changes include valuation effects, not pure FX intervention')
+add('institutional','CFTC EUR futures leveraged-fund net position','eurusd__cot_net_eur','weekly Friday publication','CFTC COT TFF','https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm','FREE files','Tuesday positions released later (normally Friday); NOT daily spot flow')
+add('institutional','CFTC PLN futures net positioning','eurpln__cot_net_pln','weekly if report available','CFTC COT','https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm','verify specific contract','Polish zloty coverage may be limited, match contract exactly')
+add('institutional','Cross border claims by currency','bank_positions_eur, bank_positions_usd','quarterly','BIS Locational Banking Statistics','https://data.bis.org/topics/LBS','FREE portal/API','Quarterly levels are not intraday flows; delayed release')
+add('institutional','Hedging pressure from open interest','eurusd__hedge_proxy','daily/weekly','CME futures/options or commercial OTC','https://www.cmegroup.com/markets/fx.html','mixed','OI is a proxy; cannot identify true hedging motives')
+add('institutional','Dealer inventory / client flow','eurusd__dealer_inventory_proxy','intraday/daily','Dealer/prime broker internal data','https://www.bis.org/publications/qr-202512/global-fx-markets-when-hedging-takes-centre-stage','generally proprietary','No universal accessible global dealer inventory')
+add('institutional','Options dealer gamma exposure','eurusd__gamma_exposure_proxy','daily/intraday','Options exchange + implied vol data','https://www.cmegroup.com/markets/fx.html','mostly commercial','Model-derived inference, not actual dealer book')
+add('institutional','Corporate FX purchase flows','eurpln__corporate_fx_flow','daily/monthly','Bank transaction/internal custody','https://www.bis.org/','generally proprietary','Corporate net demand largely not publicly observable')
+add('sentiment','EUR text sentiment score','mood_eur','timestamped news','GDELT / custom NLP','https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/','FREE documents + own processing','Need currency-specific classification, publication timestamp, dedup')
+add('sentiment','USD text sentiment score','mood_usd','timestamped news','GDELT / custom NLP','https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/','FREE documents + own processing','Headline sentiment not automatically bullish/bearish currency')
+add('sentiment','PLN text sentiment score','mood_pln','timestamped news','GDELT / custom NLP','https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/','FREE documents + own processing','Avoid duplicate syndicated news and time shift')
+add('sentiment','Social-media agreement / dispersion','news_agreement_eur','minutes/daily','X/Reddit/Telegram/API + NLP','https://www.reddit.com/dev/api/','availability varies','Sampling, survivorship, bot manipulation, and historical access costs')
+add('sentiment','News publication volume','news_count_eur','minutes/daily','GDELT DOC timelinevolraw','https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/','FREE API','News count depends on query, not signed FX demand')
+add('latency','Venue cross-quote dissemination lag','eurusd__latency_gap_ms','subsecond','Multivenue timestamped quote feeds','https://www.cboe.com/global/fx/','commercial','Clock synchronisation & feed latency; daily data cannot identify this')
+add('latency','HFT vs LLM algorithm runtime delay','eurusd__latency_algorithm_ms','milliseconds','Own benchmarks / proprietary system','https://www.bis.org/','not public','Cannot measure global HFT/AI class median from public prices')
+add('cbdc','AMM pool mid-price differential vs FX','eurusd__amm_mid','live if operational','Protocol event logs or controlled simulator','https://www.bis.org/about/bisih/topics/cbdc/mariana.htm','experimental / generally unavailable','Project Mariana was a PoC; do NOT treat as observed live CBDC FX flow')
+add('cbdc','wCBDC settlement pool reserves','eurusd__cbdc_pool_imbalance','live if operational','CBDC operator or private platform','https://www.bis.org/about/bisih/topics/cbdc/mariana.htm','experimental / proprietary','No reliable public production dataset for EU/USD/PLN CBDC AMM')
+
+p=Path(__file__).resolve().parent/'VARIABLES_AND_SOURCES.csv'
+with p.open('w',encoding='utf-8',newline='') as f:
+    writer=csv.DictWriter(f,fieldnames=records[0].keys())
+    writer.writeheader();writer.writerows(records)
+print(len(records),p)
