@@ -1,0 +1,11 @@
+__pycache__/
+.pytest_cache/
+.venv/
+results/
+data/*.csv
+.env
+*.parquet
+*.log
+.DS_Store
+.env.*
+!*.example
