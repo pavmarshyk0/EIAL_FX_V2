@@ -76,7 +76,7 @@ LICENSE                    short proprietary source-available terms
 5. Model EUR/USD and EUR/PLN; derive USD/PLN algebraically to avoid inconsistent triangle forecasts.
 6. Only proceed to cost-aware paper testing after a positive forecast baseline comparison. A synthetic demonstration does **not** imply an edge.
 
-Read [research protocol](docs/RESEARCH_PROTOCOL.md), [data sourcing and strict point-in-time rules](docs/HISTORICAL_DATA_AND_BACKTEST.md), and [source catalog](VARIABLES_AND_SOURCES.csv).
+Read [research protocol](docs/RESEARCH_PROTOCOL.md), [viability assessment and synthetic negative results](docs/RESEARCH_ASSESSMENT.md), [data sourcing and strict point-in-time rules](docs/HISTORICAL_DATA_AND_BACKTEST.md), and [source catalog](VARIABLES_AND_SOURCES.csv).
 
 ## Core data caveats
 
